@@ -12,7 +12,9 @@ settings = {
 	'bot_client_id': 0, #!!!
 	'prefix': '~',
     'separator': '@#$',
-    'channel_id': 0 #!!!
+    'channel_id': 0, #!!!
+    'ip': '',
+    'port': 0
 }
 
 intents = discord.Intents.all()
@@ -43,7 +45,7 @@ async def handle_integration(websocket, path):
             mmmssg = None
 
 new_loop = asyncio.new_event_loop()
-start_server = websockets.serve(handle_integration, 'localhost', 27079, loop = new_loop)
+start_server = websockets.serve(handle_integration, settings['ip'], settings['port'], loop = new_loop)
 
 def start_loop(loop, server):
     loop.run_until_complete(server)
