@@ -1,5 +1,9 @@
 require('chttp')
 
+local CHTTP = CHTTP
+local strsub = string.sub
+local strfind = string.find
+
 GDiscord.players_avatars_cache = {}
 
 GDiscord.sendToDS = function(params)
@@ -21,14 +25,10 @@ GDiscord.hook_connect = function(data)
     local reason = data.reason
     local time = os.date( "%H:%M:%S - %d/%m/%Y" , os.time() )
 
-    CHTTP ({
-        failed = function(reason) end,
-        success = function(code, body, headers)
-            GDiscord.players_avatars_cache[sid] = util.JSONToTable(body)['response']['players'][1]['avatarfull']
-        end,
-        method = 'GET',
-        url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" .. GDiscord.config['steam_api_key'] .. '&steamids=' .. sid
-    })
+    http.Fetch("https://steamcommunity.com/profiles/" .. sid .. "?xml=1", function(body) 
+        local aXMLpos1, aXMLpos2 = string.find(body, "avatarFull"), string.find(body, "/avatarFull")  
+        GDiscord.players_avatars_cache[sid] = string.sub(body, aXMLpos1 + 20, aXMLpos2 - 5)
+    end)
 
     timer.Simple(1.5, function()
     
