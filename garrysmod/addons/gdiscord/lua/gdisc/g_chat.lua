@@ -3,6 +3,8 @@ require('chttp')
 local CHTTP = CHTTP
 local strsub = string.sub
 local strfind = string.find
+local strtrim = string.Trim
+local tabtoJSON = util.TableToJSON
 
 GDiscord.players_avatars_cache = {}
 
@@ -10,7 +12,7 @@ GDiscord.sendToDS = function(params)
     CHTTP({
         method = 'POST',
         url = GDiscord.config['discord_webhook'] .. '?wait=true',
-        body = util.TableToJSON(params),
+        body = tabtoJSON(params),
         headers = postheader,
         type = "application/json; charset=utf-8"
     })
@@ -26,14 +28,15 @@ GDiscord.hook_connect = function(data)
     local time = os.date( "%H:%M:%S - %d/%m/%Y" , os.time() )
 
     http.Fetch("https://steamcommunity.com/profiles/" .. sid .. "?xml=1", function(body) 
-        local aXMLpos1, aXMLpos2 = string.find(body, "avatarFull"), string.find(body, "/avatarFull")  
-        GDiscord.players_avatars_cache[sid] = string.sub(body, aXMLpos1 + 20, aXMLpos2 - 5)
+        local aXMLpos1, aXMLpos2 = strfind(body, "avatarFull"), strfind(body, "/avatarFull")  
+        GDiscord.players_avatars_cache[sid] = strsub(body, aXMLpos1 + 20, aXMLpos2 - 5)
     end)
 
     timer.Simple(1.5, function()
     
         local params = 
         {
+            ['allowed_mentions'] = { ['parse'] = {} },
             ['username'] = name,
             ['avatar_url'] = GDiscord.players_avatars_cache[sid],
             ['embeds'] = 
@@ -66,6 +69,7 @@ GDiscord.hook_disconnect = function( data )
     local time = os.date( "%H:%M:%S - %d/%m/%Y" , os.time() )
     local params = 
         {
+            ['allowed_mentions'] = { ['parse'] = {} },
             ['username'] = name,
             ['avatar_url'] = GDiscord.players_avatars_cache[sid],
             ['embeds'] = 
@@ -103,7 +107,7 @@ GDiscord.hook_chat = function(ply, text)
         ['allowed_mentions'] = { ['parse'] = {} },
         ['username'] = '[' .. team.GetName( ply:Team() ) .. '] ' .. ply:Nick(),
         ['avatar_url'] = GDiscord.players_avatars_cache[ply:SteamID64()],
-        ['content'] = '> — ' .. string.Trim(text, " "),
+        ['content'] = '> — ' .. strtrim(text, " "),
     }
 
     GDiscord.sendToDS(params)
