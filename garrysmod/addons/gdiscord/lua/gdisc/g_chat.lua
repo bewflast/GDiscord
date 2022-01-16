@@ -88,15 +88,7 @@ GDiscord.hook_disconnect = function( data )
             }
         }
     GDiscord.sendToDS(params)
-
-    local temp = {}
-    for k,v in pairs(GDiscord.players_avatars_cache) do 
-        if k != sid then 
-            temp[k] = v                                   --dont ask me bout dat PLS
-        end 
-    end
-    GDiscord.players_avatars_cache = temp
-    temp = nil
+    table.RemoveByValue(GDiscord.players_avatars_cache, GDiscord.players_avatars_cache[sid])
 
 end
 
