@@ -3,17 +3,54 @@ util.AddNetworkString("GDiscord_receive_message")
 
 GDiscord.is_connected = false 
 GDiscord.wsock = nil
+local send_auth = string.format([[
+		{
+			"op": 2,
+			"d": {
+				"token": "%s",
+				"properties": {
+					"$os": "windows",
+					"$browser": "chrome",
+					"$device": "pc"
+				}
+			}
+		}
+	]], GDiscord.config['bot_token'])
+
+local send_hb = [[
+	{
+		"op": 1,
+		"d": "null"
+	}
+]]
 
 GDiscord.setup_connection = function()
-    GDiscord.wsock = GWSockets.createWebSocket("ws://" .. GDiscord.config['websocket_ip'] .. ":" .. GDiscord.config['websocket_port'])
+	
+    GDiscord.wsock = GWSockets.createWebSocket(GDiscord.config['discord_gateway_link'])
 
-    function GDiscord.wsock:onMessage(raw)
+    function GDiscord.wsock:onMessage(data)
 
-        local message = string.Split(raw, GDiscord.config['receive_separator'])
-        net.Start("GDiscord_receive_message")
-            net.WriteString(message[1])
-            net.WriteString(message[2])
-        net.Broadcast()
+		local recv = util.JSONToTable(data)
+
+        if recv["op"] == 10 then 
+
+			hb_interval = recv["d"]["heartbeat_interval"] / 10000
+			timer.Simple(hb_interval, function ()
+				GDiscord.wsock:write(send_auth)
+			end)
+	
+		elseif recv['op'] == 0 and recv['t'] == "MESSAGE_CREATE" and recv['d']['channel_id'] == GDiscord.config['channel_id'] then
+
+			net.Start("GDiscord_receive_message")
+				net.WriteString(recv["d"]["author"]["username"])
+				net.WriteString(recv["d"]["content"])
+        	net.Broadcast()
+
+		else 
+
+			timer.Simple(hb_interval, function() GDiscord.wsock:write(send_hb)end)
+
+		end
 
     end
 
