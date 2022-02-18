@@ -39,7 +39,7 @@ GDiscord.setup_connection = function()
 				GDiscord.wsock:write(send_auth)
 			end)
 	
-		elseif recv['op'] == 0 and recv['t'] == "MESSAGE_CREATE" and recv['d']['channel_id'] == GDiscord.config['channel_id'] then
+		elseif recv['op'] == 0 and recv['t'] == "MESSAGE_CREATE" and recv['d']['channel_id'] == GDiscord.config['channel_id'] and not recv['d']['author']['bot'] then
 
 			net.Start("GDiscord_receive_message")
 				net.WriteString(recv["d"]["author"]["username"])
