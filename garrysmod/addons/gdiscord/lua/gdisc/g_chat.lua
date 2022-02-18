@@ -30,10 +30,6 @@ GDiscord.hook_connect = function(data)
     http.Fetch("https://steamcommunity.com/profiles/" .. sid .. "?xml=1", function(body) 
         local aXMLpos1, aXMLpos2 = strfind(body, "avatarFull"), strfind(body, "/avatarFull")  
         GDiscord.players_avatars_cache[sid] = strsub(body, aXMLpos1 + 20, aXMLpos2 - 5)
-    end)
-
-    timer.Simple(1.5, function()
-    
         local params = 
         {
             ['allowed_mentions'] = { ['parse'] = {} },
@@ -56,6 +52,7 @@ GDiscord.hook_connect = function(data)
         }
         GDiscord.sendToDS(params)
     end)
+
 
 end
 
