@@ -1,10 +1,8 @@
 GDiscord = {}
 
 GDiscord.config = {
-
-        ['websocket_ip'] = "",
-        ['websocket_port'] = "",
+        ['discord_gateway_link'] = "wss://gateway.discord.gg/?v=9&encoding=json",
         ['discord_webhook'] = "",
-        ['receive_separator'] = "@#$"
-
+        ['bot_token'] = "",
+        ['channel_id'] = ""
     }
