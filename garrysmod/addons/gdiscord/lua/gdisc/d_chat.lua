@@ -1,13 +1,17 @@
 require("gwsockets")
 util.AddNetworkString("GDiscord_receive_message")
 
+local netStart = net.Start
+local netBroadcast = net.Broadcast
+local netWriteString = net.WriteString
+local JSONToTable = util.JSONToTable
 
 GDiscord.setup_connection = function()
 	
     GDiscord.wsock = GWSockets.createWebSocket(GDiscord.config['discord_gateway_link'])
 
     function GDiscord.wsock:onMessage(data)
-		local recv = util.JSONToTable(data)
+		local recv = JSONToTable(data)
         if recv["op"] == 10 then 
 
 			GDiscord.other['hb_interval'] = recv["d"]["heartbeat_interval"] / 10000
@@ -20,10 +24,10 @@ GDiscord.setup_connection = function()
 	
 		elseif recv['op'] == 0 and recv['t'] == "MESSAGE_CREATE" and recv['d']['channel_id'] == GDiscord.config['channel_id'] and not recv['d']['author']['bot'] then
 
-			net.Start("GDiscord_receive_message")
-				net.WriteString(recv["d"]["author"]["username"])
-				net.WriteString(recv["d"]["content"])
-        	net.Broadcast()
+			netStart("GDiscord_receive_message")
+				netWriteString(recv["d"]["author"]["username"])
+				netWriteString(recv["d"]["content"])
+			netBroadcast()
 
 		end
     end
@@ -119,4 +123,3 @@ function GDiscordInit()
 end
 
 hook.Add("InitPostEntity", "InitGDiscord", GDiscordInit)
---a
