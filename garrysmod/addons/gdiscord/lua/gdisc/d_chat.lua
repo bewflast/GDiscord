@@ -3,8 +3,15 @@ util.AddNetworkString("GDiscord_receive_message")
 
 GDiscord.is_connected = false 
 GDiscord.wsock = nil
+GDiscord.payloads = {}
+GDiscord.other = { 
+	['hb_interval'] = nil, 
+	['session_id'] = nil, 
+	['seq'] = 0 
+}
 
-local auth_payload = string.format([[
+
+GDiscord.payloads['auth'] = string.format([[
 		{
 			"op": 2,
 			"d": {
@@ -18,14 +25,26 @@ local auth_payload = string.format([[
 		}
 	]], GDiscord.config['bot_token'])
 
-local hb_payload = [[
+
+GDiscord.payloads['heartbeat'] = [[
 	{
 		"op": 1,
 		"d": "null"
 	}
 ]]
 
-local hb_interval = nil
+
+GDiscord.payloads['resume'] = string.format([[
+	{
+		"op": 6,
+		"d": {
+		  "token": "%s",
+		  "session_id": "%s",
+		  "seq": %d
+		}
+	  }
+]], GDiscord.config['bot_token'], GDiscord.other['session_id'], GDiscord.other['seq'])
+
 
 GDiscord.setup_connection = function()
 	
@@ -35,12 +54,11 @@ GDiscord.setup_connection = function()
 		local recv = util.JSONToTable(data)
         if recv["op"] == 10 then 
 
-			hb_interval = recv["d"]["heartbeat_interval"] / 10000
-			timer.Simple(hb_interval, function ()
-				GDiscord.wsock:write(auth_payload)
-				timer.Create("DS gateway heartbeat", hb_interval, 0, function()
-					print('sent heartbeat!')
-					GDiscord.wsock:write(hb_payload)
+			GDiscord.other['hb_interval'] = recv["d"]["heartbeat_interval"] / 10000
+			timer.Simple(GDiscord.other['hb_interval'], function ()
+				GDiscord.wsock:write(GDiscord.payloads['auth'])
+				timer.Create("DS gateway heartbeat", GDiscord.other['hb_interval'], 0, function()
+					GDiscord.wsock:write(GDiscord.payloads['heartbeat'])
 				end)
 			end)
 	
