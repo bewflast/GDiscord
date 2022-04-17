@@ -18,3 +18,11 @@ Simple chat integration between GMOD and Discord
 4) Put the `garrysmod/addons/...` folder in... Guess, where?
 5) Configure `garrysmod/addons/gdiscord/lua/gdisc/gdisc_config.lua`
 6) Enjoy
+
+# Bot's settings:
+
+##### No permissions scopes are required:
+![](https://i.imgur.com/7nzHG6V.jpeg)
+
+##### No intents are required:
+![](https://i.imgur.com/nkLaMaK.jpeg)
