@@ -1,50 +1,6 @@
 require("gwsockets")
 util.AddNetworkString("GDiscord_receive_message")
 
-GDiscord.is_connected = false 
-GDiscord.wsock = nil
-GDiscord.payloads = {}
-GDiscord.other = { 
-	['hb_interval'] = nil, 
-	['session_id'] = nil, 
-	['seq'] = 0 
-}
-
-
-GDiscord.payloads['auth'] = string.format([[
-		{
-			"op": 2,
-			"d": {
-				"token": "%s",
-				"properties": {
-					"$os": "windows",
-					"$browser": "chrome",
-					"$device": "pc"
-				}
-			}
-		}
-	]], GDiscord.config['bot_token'])
-
-
-GDiscord.payloads['heartbeat'] = [[
-	{
-		"op": 1,
-		"d": "null"
-	}
-]]
-
-
-GDiscord.payloads['resume'] = string.format([[
-	{
-		"op": 6,
-		"d": {
-		  "token": "%s",
-		  "session_id": "%s",
-		  "seq": %d
-		}
-	  }
-]], GDiscord.config['bot_token'], GDiscord.other['session_id'], GDiscord.other['seq'])
-
 
 GDiscord.setup_connection = function()
 	
@@ -102,10 +58,64 @@ end
 
 local function checkWSocket()
     if not GDiscord.is_connected then
-        GDiscord.setup_connection()
+        GDiscordInit()
     end
 end
 
-hook.Add("InitPostEntity", "InitGDiscord", function() 
-    timer.Create("CheckGDiscordConnection", 5, 0, function() checkWSocket() end) 
- end)
+
+function GDiscordInit()
+
+	timer.Remove("CheckGDiscordConnection")
+
+	if GDiscord.wsock then 
+		GDiscord.wsock:close()
+	else 
+		GDiscord.wsock = nil 
+	end
+
+	GDiscord.payloads = {}
+
+	GDiscord.other = { 
+		['hb_interval'] = nil, 
+		['session_id'] = nil, 
+		['seq'] = 0 
+	}
+
+	GDiscord.payloads['auth'] = string.format([[
+		{
+			"op": 2,
+			"d": {
+				"token": "%s",
+				"properties": {
+					"$os": "windows",
+					"$browser": "chrome",
+					"$device": "pc"
+				}
+			}
+		}
+	]], GDiscord.config['bot_token'])
+
+	GDiscord.payloads['heartbeat'] = [[
+		{
+			"op": 1,
+			"d": "null"
+		}
+	]]
+
+	GDiscord.payloads['resume'] = string.format([[
+		{
+			"op": 6,
+			"d": {
+			"token": "%s",
+			"session_id": "%s",
+			"seq": %d
+			}
+		}
+	]], GDiscord.config['bot_token'], GDiscord.other['session_id'], GDiscord.other['seq'])
+
+    timer.Create("CheckGDiscordConnection", 5, 0, function() checkWSocket() end)
+	GDiscord.setup_connection()
+	hook.Remove("InitPostEntity", "InitGDiscord")
+end
+
+hook.Add("InitPostEntity", "InitGDiscord", GDiscordInit)
