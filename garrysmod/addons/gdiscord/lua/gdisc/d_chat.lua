@@ -3,7 +3,8 @@ util.AddNetworkString("GDiscord_receive_message")
 
 GDiscord.is_connected = false 
 GDiscord.wsock = nil
-local send_auth = string.format([[
+
+local auth_payload = string.format([[
 		{
 			"op": 2,
 			"d": {
@@ -17,26 +18,30 @@ local send_auth = string.format([[
 		}
 	]], GDiscord.config['bot_token'])
 
-local send_hb = [[
+local hb_payload = [[
 	{
 		"op": 1,
 		"d": "null"
 	}
 ]]
 
+local hb_interval = nil
+
 GDiscord.setup_connection = function()
 	
     GDiscord.wsock = GWSockets.createWebSocket(GDiscord.config['discord_gateway_link'])
 
     function GDiscord.wsock:onMessage(data)
-
 		local recv = util.JSONToTable(data)
-
         if recv["op"] == 10 then 
 
 			hb_interval = recv["d"]["heartbeat_interval"] / 10000
 			timer.Simple(hb_interval, function ()
-				GDiscord.wsock:write(send_auth)
+				GDiscord.wsock:write(auth_payload)
+				timer.Create("DS gateway heartbeat", hb_interval, 0, function()
+					print('sent heartbeat!')
+					GDiscord.wsock:write(hb_payload)
+				end)
 			end)
 	
 		elseif recv['op'] == 0 and recv['t'] == "MESSAGE_CREATE" and recv['d']['channel_id'] == GDiscord.config['channel_id'] and not recv['d']['author']['bot'] then
@@ -46,18 +51,14 @@ GDiscord.setup_connection = function()
 				net.WriteString(recv["d"]["content"])
         	net.Broadcast()
 
-		else 
-
-			timer.Simple(hb_interval, function() GDiscord.wsock:write(send_hb)end)
-
 		end
-
     end
 
     function GDiscord.wsock:onError(txt)
 
 		print("GDiscord disconnected. Error: ", txt)
 		GDiscord.is_connected = false
+		timer.Remove("DS gateway heartbeat")
 		GDiscord.wsock:close()
 
 	end
@@ -73,6 +74,7 @@ GDiscord.setup_connection = function()
 
 		print("GDiscord disconnected.")
 		GDiscord.is_connected = false
+		timer.Remove("DS gateway heartbeat")
 		GDiscord.wsock:close()
 
 	end
