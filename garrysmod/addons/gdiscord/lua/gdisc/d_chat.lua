@@ -119,3 +119,4 @@ function GDiscordInit()
 end
 
 hook.Add("InitPostEntity", "InitGDiscord", GDiscordInit)
+--a
