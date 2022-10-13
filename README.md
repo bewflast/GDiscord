@@ -24,5 +24,5 @@ Simple chat integration between GMOD and Discord
 ##### No permissions scopes are required:
 ![](https://i.imgur.com/7nzHG6V.jpeg)
 
-##### No intents are required:
-![](https://i.imgur.com/nkLaMaK.jpeg)
+##### Only "Message content" intent is required:
+![](https://i.imgur.com/TX6d1wK.jpeg)
