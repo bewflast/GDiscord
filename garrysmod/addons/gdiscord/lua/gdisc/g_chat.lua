@@ -27,7 +27,7 @@ GDiscord.hook_connect = function(data)
     local reason = data.reason
     local time = os.date( "%H:%M:%S - %d/%m/%Y" , os.time() )
 
-    if sid == "0" then return end -- if bot ne rabotaet ;(( 
+    if sid == "0" then return end
     
     http.Fetch("https://steamcommunity.com/profiles/" .. sid .. "?xml=1", function(body) 
         local aXMLpos1, aXMLpos2 = strfind(body, "avatarFull"), strfind(body, "/avatarFull")  
